@@ -420,7 +420,7 @@ export default function HomePage() {
         isOpen={bookingModalState.isOpen}
         event={bookingModalState.event}
         adults={bookingModalState.adults}
-        children={bookingModalState.children}
+        childrenCount={bookingModalState.children}
         onClose={() =>
           setBookingModalState({
             isOpen: false,

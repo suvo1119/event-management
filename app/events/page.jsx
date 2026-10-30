@@ -33,9 +33,13 @@ function EventsContent() {
   const searchParams = useSearchParams();
   const { events, categories, bookings } = useApp();
 
-  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'past'
-  const [keyword, setKeyword] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const qKeyword = searchParams.get('keyword') || '';
+  const qCategory = searchParams.get('category_id') || '';
+  const qType = searchParams.get('type') || '';
+
+  const [activeTab, setActiveTab] = useState(qType === 'past' ? 'past' : 'upcoming'); // 'upcoming' | 'past'
+  const [keyword, setKeyword] = useState(qKeyword);
+  const [categoryId, setCategoryId] = useState(qCategory);
   const [dateFilter, setDateFilter] = useState('');
 
   // Ticket Lookup Section state
@@ -53,16 +57,6 @@ function EventsContent() {
     totalPrice: 0
   });
   const [activeDigitalTicket, setActiveDigitalTicket] = useState(null);
-
-  useEffect(() => {
-    const qKeyword = searchParams.get('keyword');
-    const qCategory = searchParams.get('category_id');
-    const qType = searchParams.get('type');
-
-    if (qKeyword) setKeyword(qKeyword);
-    if (qCategory) setCategoryId(qCategory);
-    if (qType === 'past') setActiveTab('past');
-  }, [searchParams]);
 
   const handleOpenDetails = (event, adults = 1, children = 0) => {
     setSelectedEventForModal(event);
@@ -463,7 +457,7 @@ function EventsContent() {
         isOpen={bookingModalState.isOpen}
         event={bookingModalState.event}
         adults={bookingModalState.adults}
-        children={bookingModalState.children}
+        childrenCount={bookingModalState.children}
         onClose={() =>
           setBookingModalState({
             isOpen: false,

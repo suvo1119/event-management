@@ -9,31 +9,28 @@ export default function BookingModal({
   onClose,
   event,
   adults = 1,
+  childrenCount = 0,
   children = 0,
   onBookingConfirmed
 }) {
   const { currentUser, createBooking } = useApp();
-  const [email, setEmail] = useState('');
+  const effectiveChildren = childrenCount || children || 0;
+  const [emailInput, setEmailInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (currentUser?.email) {
-      setEmail(currentUser.email);
-    }
-  }, [currentUser]);
 
   if (!isOpen || !event) return null;
 
+  const currentEmail = emailInput !== '' ? emailInput : (currentUser?.email || '');
   const basePrice = Number(event.price) || 0;
   const childPrice = basePrice * 0.5;
   const adultsTotal = adults * basePrice;
-  const childrenTotal = children * childPrice;
+  const childrenTotal = effectiveChildren * childPrice;
   const grandTotal = adultsTotal + childrenTotal;
 
   const handleConfirm = async (e) => {
     e.preventDefault();
 
-    const finalEmail = (email || currentUser?.email || '').trim().toLowerCase();
+    const finalEmail = currentEmail.trim().toLowerCase();
     if (!finalEmail) {
       alert('Please provide a valid email address for your ticket receipt.');
       return;
@@ -45,7 +42,7 @@ export default function BookingModal({
         eventId: event.event_id,
         email: finalEmail,
         adults,
-        children,
+        children: effectiveChildren,
         total_price: grandTotal
       });
 
@@ -98,7 +95,7 @@ export default function BookingModal({
           </div>
 
           <div className="flex justify-between mb-2.5 text-slate-600">
-            <span>Children ({children} &times; ₹{childPrice}):</span>
+            <span>Children ({effectiveChildren} &times; ₹{childPrice}):</span>
             <strong className="text-slate-900 font-semibold">₹{childrenTotal}</strong>
           </div>
 
@@ -131,8 +128,8 @@ export default function BookingModal({
             </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={currentEmail}
+              onChange={(e) => setEmailInput(e.target.value)}
               placeholder="name@example.com"
               required
               className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"

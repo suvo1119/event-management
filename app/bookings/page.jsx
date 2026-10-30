@@ -19,18 +19,14 @@ export default function BookingsPage() {
   const [emailInput, setEmailInput] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  useEffect(() => {
-    if (currentUser?.email) {
-      setEmailInput(currentUser.email);
-    }
-  }, [currentUser]);
+  const activeEmail = emailInput !== '' ? emailInput : (currentUser?.email || '');
 
   const userBookings = useMemo(() => {
     const list = Array.isArray(bookings) ? bookings : [];
-    if (!emailInput.trim()) return list;
-    const norm = emailInput.trim().toLowerCase();
+    if (!activeEmail.trim()) return list;
+    const norm = activeEmail.trim().toLowerCase();
     return list.filter((b) => b.user_email === norm);
-  }, [bookings, emailInput]);
+  }, [bookings, activeEmail]);
 
   const totalSpent = (Array.isArray(userBookings) ? userBookings : []).reduce(
     (sum, b) => sum + (Number(b.total_price) || 0),
@@ -68,7 +64,7 @@ export default function BookingsPage() {
           <div className="relative flex-1 min-w-[260px]">
             <input
               type="email"
-              value={emailInput}
+              value={activeEmail}
               onChange={(e) => setEmailInput(e.target.value)}
               placeholder="Search by registered email address (e.g. name@example.com)..."
               className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900"

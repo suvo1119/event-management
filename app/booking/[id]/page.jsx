@@ -21,27 +21,18 @@ export default function DedicatedBookingPage() {
   const router = useRouter();
   const { events, currentUser, createBooking } = useApp();
 
-  const [event, setEvent] = useState(null);
+  const event = useMemo(() => {
+    if (!params?.id) return null;
+    return (Array.isArray(events) ? events : []).find((e) => String(e.event_id) === String(params.id)) || null;
+  }, [params, events]);
+
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
-  const [email, setEmail] = useState('');
+  const [emailInput, setEmailInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
 
-  useEffect(() => {
-    if (params?.id) {
-      const found = events.find((e) => String(e.event_id) === String(params.id));
-      if (found) {
-        setEvent(found);
-      }
-    }
-  }, [params, events]);
-
-  useEffect(() => {
-    if (currentUser?.email) {
-      setEmail(currentUser.email);
-    }
-  }, [currentUser]);
+  const activeEmail = emailInput !== '' ? emailInput : (currentUser?.email || '');
 
   if (!event) {
     return (
@@ -65,7 +56,7 @@ export default function DedicatedBookingPage() {
 
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) {
+    if (!activeEmail.trim()) {
       alert('Please enter your recipient account email.');
       return;
     }
@@ -74,7 +65,7 @@ export default function DedicatedBookingPage() {
     try {
       const newBooking = await createBooking({
         eventId: event.event_id,
-        email: email.trim().toLowerCase(),
+        email: activeEmail.trim().toLowerCase(),
         adults,
         children,
         total_price: grandTotal
@@ -262,8 +253,8 @@ export default function DedicatedBookingPage() {
                 </label>
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={activeEmail}
+                  onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="name@example.com"
                   required
                   className="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-900"

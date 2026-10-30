@@ -22,14 +22,43 @@ const STORAGE_KEYS = {
   IS_ADMIN: 'isAdmin'
 };
 
+function getInitialStorage(key, fallback = null) {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getInitialArray(key, fallback = []) {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const item = localStorage.getItem(key);
+    if (!item) return fallback;
+    const parsed = JSON.parse(item);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function AppProvider({ children }) {
-  const [events, setEvents] = useState(INITIAL_EVENTS);
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
-  const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
-  const [users, setUsers] = useState(INITIAL_USERS);
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [events, setEvents] = useState(() => getInitialArray(STORAGE_KEYS.EVENTS, INITIAL_EVENTS));
+  const [categories, setCategories] = useState(() => getInitialArray(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES));
+  const [bookings, setBookings] = useState(() => getInitialArray(STORAGE_KEYS.BOOKINGS, INITIAL_BOOKINGS));
+  const [users, setUsers] = useState(() => getInitialArray(STORAGE_KEYS.USERS, INITIAL_USERS));
+  const [reviews, setReviews] = useState(() => getInitialArray(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS));
+  const [currentUser, setCurrentUser] = useState(() => getInitialStorage(STORAGE_KEYS.USER, null));
+  const [isAdmin, setIsAdmin] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem(STORAGE_KEYS.IS_ADMIN) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [toasts, setToasts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,44 +153,6 @@ export function AppProvider({ children }) {
 
   // Initial client mount
   useEffect(() => {
-    try {
-      const storedAdmin = localStorage.getItem(STORAGE_KEYS.IS_ADMIN);
-      if (storedAdmin === 'true') {
-        setIsAdmin(true);
-      }
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      if (storedUser) {
-        setCurrentUser(JSON.parse(storedUser));
-      }
-
-      // Sanitize stored collections to purge any corrupt non-array JSON objects
-      const sanitizeStorage = (key, setter, defaultVal) => {
-        const item = localStorage.getItem(key);
-        if (item) {
-          try {
-            const parsed = JSON.parse(item);
-            if (Array.isArray(parsed)) {
-              setter(parsed);
-            } else {
-              localStorage.removeItem(key);
-              setter(defaultVal);
-            }
-          } catch {
-            localStorage.removeItem(key);
-            setter(defaultVal);
-          }
-        }
-      };
-
-      sanitizeStorage(STORAGE_KEYS.EVENTS, setEvents, INITIAL_EVENTS);
-      sanitizeStorage(STORAGE_KEYS.CATEGORIES, setCategories, INITIAL_CATEGORIES);
-      sanitizeStorage(STORAGE_KEYS.BOOKINGS, setBookings, INITIAL_BOOKINGS);
-      sanitizeStorage(STORAGE_KEYS.USERS, setUsers, INITIAL_USERS);
-      sanitizeStorage(STORAGE_KEYS.REVIEWS, setReviews, INITIAL_REVIEWS);
-    } catch (e) {
-      console.error('Auth restore error', e);
-    }
-
     refreshData();
   }, [refreshData]);
 

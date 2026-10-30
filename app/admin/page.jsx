@@ -63,7 +63,9 @@ function AdminContent() {
   const safeUsers = useMemo(() => (Array.isArray(users) ? users : []), [users]);
   const safeReviews = useMemo(() => (Array.isArray(reviews) ? reviews : []), [reviews]);
 
-  const [activeTab, setActiveTab] = useState('create');
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam && ['create', 'bookings', 'users', 'reviews', 'events'].includes(tabParam)) ? tabParam : 'create';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
 
@@ -83,13 +85,6 @@ function AdminContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadNote, setUploadNote] = useState(null);
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab && ['create', 'bookings', 'users', 'reviews', 'events'].includes(tab)) {
-      setActiveTab(tab);
-    }
-  }, [searchParams]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];

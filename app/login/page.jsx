@@ -12,19 +12,13 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { login } = useApp();
 
-  const [role, setRole] = useState('user'); // 'user' | 'admin'
+  const initialRole = searchParams.get('role') === 'admin' ? 'admin' : 'user';
+  const [role, setRole] = useState(initialRole);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  useEffect(() => {
-    const r = searchParams.get('role');
-    if (r === 'admin') {
-      setRole('admin');
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
