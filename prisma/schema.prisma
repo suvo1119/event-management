@@ -1,0 +1,77 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  iconKey     String?
+  description String?
+  events      Event[]
+  createdAt   DateTime @default(now())
+
+  @@map("categories")
+}
+
+model Event {
+  id              Int       @id @default(autoincrement())
+  title           String
+  description     String?
+  startDate       String
+  timeSlot        String?
+  location        String?
+  price           Float     @default(0)
+  bannerUrl       String?
+  duration        String?
+  ageLimit        String?
+  languages       String?
+  interestedCount Int       @default(0)
+  categoryId      Int
+  category        Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+  reviews         Review[]
+  createdAt       DateTime  @default(now())
+
+  @@map("events")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
+
+model Booking {
+  id            Int      @id @default(autoincrement())
+  eventId       Int
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userEmail     String
+  adults        Int      @default(1)
+  children      Int      @default(0)
+  totalPrice    Float    @default(0)
+  bookingDate   DateTime @default(now())
+  paymentStatus String   @default("Pay at Counter")
+
+  @@map("bookings")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userEmail String
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
