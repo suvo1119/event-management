@@ -49,38 +49,71 @@ export function AppProvider({ children }) {
   // Fetch initial data from API, falling back to localStorage or seeds
   const refreshData = useCallback(async () => {
     try {
-      const [eventsRes, catRes, bookRes, revRes] = await Promise.allSettled([
+      const [eventsRes, catRes, bookRes, revRes, usersRes] = await Promise.allSettled([
         fetch('/api/events').then(r => r.json()),
         fetch('/api/categories').then(r => r.json()),
         fetch('/api/bookings').then(r => r.json()),
-        fetch('/api/reviews').then(r => r.json())
+        fetch('/api/reviews').then(r => r.json()),
+        fetch('/api/users').then(r => r.json())
       ]);
 
-      if (eventsRes.status === 'fulfilled' && eventsRes.value?.success) {
+      if (eventsRes.status === 'fulfilled' && eventsRes.value?.success && Array.isArray(eventsRes.value.data)) {
         setEvents(eventsRes.value.data);
         localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(eventsRes.value.data));
+      } else if (eventsRes.status === 'fulfilled' && eventsRes.value?.success === false) {
+        setEvents([]);
       }
-      if (catRes.status === 'fulfilled' && catRes.value?.success) {
+
+      if (catRes.status === 'fulfilled' && catRes.value?.success && Array.isArray(catRes.value.data)) {
         setCategories(catRes.value.data);
         localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catRes.value.data));
       }
-      if (bookRes.status === 'fulfilled' && bookRes.value?.success) {
+
+      if (bookRes.status === 'fulfilled' && bookRes.value?.success && Array.isArray(bookRes.value.data)) {
         setBookings(bookRes.value.data);
         localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookRes.value.data));
+      } else if (bookRes.status === 'fulfilled' && bookRes.value?.success === false) {
+        setBookings([]);
       }
-      if (revRes.status === 'fulfilled' && revRes.value?.success) {
+
+      if (revRes.status === 'fulfilled' && revRes.value?.success && Array.isArray(revRes.value.data)) {
         setReviews(revRes.value.data);
         localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(revRes.value.data));
+      } else {
+        // Guaranteed fallback to clean array if route returned non-array
+        setReviews([]);
+        localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify([]));
       }
-    } catch {
+
+      if (usersRes.status === 'fulfilled' && usersRes.value?.success && Array.isArray(usersRes.value.data)) {
+        setUsers(usersRes.value.data);
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(usersRes.value.data));
+      }
+    } catch (err) {
+      console.warn('API sync warning:', err);
       // Fallback to localStorage if API unavailable
       try {
         const localEvents = localStorage.getItem(STORAGE_KEYS.EVENTS);
-        if (localEvents) setEvents(JSON.parse(localEvents));
+        if (localEvents) {
+          const parsed = JSON.parse(localEvents);
+          if (Array.isArray(parsed)) setEvents(parsed);
+        }
         const localBookings = localStorage.getItem(STORAGE_KEYS.BOOKINGS);
-        if (localBookings) setBookings(JSON.parse(localBookings));
+        if (localBookings) {
+          const parsed = JSON.parse(localBookings);
+          if (Array.isArray(parsed)) setBookings(parsed);
+        }
         const localReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
-        if (localReviews) setReviews(JSON.parse(localReviews));
+        if (localReviews) {
+          const parsed = JSON.parse(localReviews);
+          if (Array.isArray(parsed)) setReviews(parsed);
+          else setReviews([]);
+        }
+        const localUsers = localStorage.getItem(STORAGE_KEYS.USERS);
+        if (localUsers) {
+          const parsed = JSON.parse(localUsers);
+          if (Array.isArray(parsed)) setUsers(parsed);
+        }
       } catch (e) {
         console.error('LocalStorage load error', e);
       }
@@ -100,6 +133,31 @@ export function AppProvider({ children }) {
       if (storedUser) {
         setCurrentUser(JSON.parse(storedUser));
       }
+
+      // Sanitize stored collections to purge any corrupt non-array JSON objects
+      const sanitizeStorage = (key, setter, defaultVal) => {
+        const item = localStorage.getItem(key);
+        if (item) {
+          try {
+            const parsed = JSON.parse(item);
+            if (Array.isArray(parsed)) {
+              setter(parsed);
+            } else {
+              localStorage.removeItem(key);
+              setter(defaultVal);
+            }
+          } catch {
+            localStorage.removeItem(key);
+            setter(defaultVal);
+          }
+        }
+      };
+
+      sanitizeStorage(STORAGE_KEYS.EVENTS, setEvents, INITIAL_EVENTS);
+      sanitizeStorage(STORAGE_KEYS.CATEGORIES, setCategories, INITIAL_CATEGORIES);
+      sanitizeStorage(STORAGE_KEYS.BOOKINGS, setBookings, INITIAL_BOOKINGS);
+      sanitizeStorage(STORAGE_KEYS.USERS, setUsers, INITIAL_USERS);
+      sanitizeStorage(STORAGE_KEYS.REVIEWS, setReviews, INITIAL_REVIEWS);
     } catch (e) {
       console.error('Auth restore error', e);
     }

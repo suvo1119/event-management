@@ -26,12 +26,13 @@ export default function BookingsPage() {
   }, [currentUser]);
 
   const userBookings = useMemo(() => {
-    if (!emailInput.trim()) return bookings;
+    const list = Array.isArray(bookings) ? bookings : [];
+    if (!emailInput.trim()) return list;
     const norm = emailInput.trim().toLowerCase();
-    return bookings.filter((b) => b.user_email === norm);
+    return list.filter((b) => b.user_email === norm);
   }, [bookings, emailInput]);
 
-  const totalSpent = userBookings.reduce(
+  const totalSpent = (Array.isArray(userBookings) ? userBookings : []).reduce(
     (sum, b) => sum + (Number(b.total_price) || 0),
     0
   );

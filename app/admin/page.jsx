@@ -57,6 +57,12 @@ function AdminContent() {
     deleteUser
   } = useApp();
 
+  const safeEvents = useMemo(() => (Array.isArray(events) ? events : []), [events]);
+  const safeCategories = useMemo(() => (Array.isArray(categories) ? categories : []), [categories]);
+  const safeBookings = useMemo(() => (Array.isArray(bookings) ? bookings : []), [bookings]);
+  const safeUsers = useMemo(() => (Array.isArray(users) ? users : []), [users]);
+  const safeReviews = useMemo(() => (Array.isArray(reviews) ? reviews : []), [reviews]);
+
   const [activeTab, setActiveTab] = useState('create');
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -185,10 +191,10 @@ function AdminContent() {
   };
 
   const totalRevenue = useMemo(() => {
-    return bookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
-  }, [bookings]);
+    return safeBookings.reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
+  }, [safeBookings]);
 
-  const categoryDropdownOptions = categories.map((c) => ({
+  const categoryDropdownOptions = safeCategories.map((c) => ({
     value: String(c.category_id),
     label: c.category_name,
     icon: CATEGORY_ICONS[c.category_name] || <Ticket size={14} />
@@ -280,7 +286,7 @@ function AdminContent() {
               <Ticket size={14} className="text-slate-400" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
-              {bookings?.length ?? 0}
+              {safeBookings.length}
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
               Attendee reservations
@@ -306,7 +312,7 @@ function AdminContent() {
               <Users size={14} className="text-slate-400" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
-              {users?.length ?? 0}
+              {safeUsers.length}
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
               User profiles
@@ -319,7 +325,7 @@ function AdminContent() {
               <Star size={14} className="text-amber-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
-              {reviews?.length ?? 0}
+              {safeReviews.length}
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
               Attendee feedback
@@ -332,7 +338,7 @@ function AdminContent() {
               <Calendar size={14} className="text-blue-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
-              {events?.length ?? 0}
+              {safeEvents.length}
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
               Active listings
@@ -362,7 +368,7 @@ function AdminContent() {
             }`}
           >
             <Ticket size={14} />
-            <span>Bookings ({bookings?.length ?? 0})</span>
+            <span>Bookings ({safeBookings.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('users')}
@@ -373,7 +379,7 @@ function AdminContent() {
             }`}
           >
             <Users size={14} />
-            <span>Registered Users ({users?.length ?? 0})</span>
+            <span>Registered Users ({safeUsers.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
@@ -384,7 +390,7 @@ function AdminContent() {
             }`}
           >
             <Star size={14} />
-            <span>Reviews ({reviews?.length ?? 0})</span>
+            <span>Reviews ({safeReviews.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('events')}
@@ -395,7 +401,7 @@ function AdminContent() {
             }`}
           >
             <Calendar size={14} />
-            <span>Manage Events ({events?.length ?? 0})</span>
+            <span>Manage Events ({safeEvents.length})</span>
           </button>
         </div>
 
@@ -734,7 +740,7 @@ function AdminContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {bookings.map((b) => (
+                  {safeBookings.map((b) => (
                     <tr key={b.booking_id} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-bold text-slate-900">
                         #{b.booking_id}
@@ -773,7 +779,7 @@ function AdminContent() {
                       </td>
                     </tr>
                   ))}
-                  {bookings.length === 0 && (
+                  {safeBookings.length === 0 && (
                     <tr>
                       <td colSpan={8} className="py-8 text-center text-slate-400">
                         No user bookings recorded.
@@ -808,7 +814,7 @@ function AdminContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {users.map((u) => (
+                  {safeUsers.map((u) => (
                     <tr key={u.user_id} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-bold text-slate-900">
                         #{u.user_id}
@@ -836,7 +842,7 @@ function AdminContent() {
                       </td>
                     </tr>
                   ))}
-                  {users.length === 0 && (
+                  {safeUsers.length === 0 && (
                     <tr>
                       <td colSpan={5} className="py-8 text-center text-slate-400">
                         No registered users found.
@@ -872,7 +878,7 @@ function AdminContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {reviews.map((r) => (
+                  {safeReviews.map((r) => (
                     <tr key={r.review_id} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3 font-semibold text-slate-900">
                         {r.event_title}
@@ -903,7 +909,7 @@ function AdminContent() {
                       </td>
                     </tr>
                   ))}
-                  {reviews.length === 0 && (
+                  {safeReviews.length === 0 && (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-slate-400">
                         No reviews submitted yet.
@@ -922,7 +928,7 @@ function AdminContent() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  Catalog Events ({events.length})
+                  Catalog Events ({safeEvents.length})
                 </h3>
                 <span className="text-xs text-slate-500">
                   Active listings displayed on public search
@@ -952,7 +958,7 @@ function AdminContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {events.map((e) => (
+                  {safeEvents.map((e) => (
                     <tr key={e.event_id} className="hover:bg-slate-50">
                       <td className="py-2.5 px-3">
                         <img
@@ -995,6 +1001,13 @@ function AdminContent() {
                       </td>
                     </tr>
                   ))}
+                  {safeEvents.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        No events published yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

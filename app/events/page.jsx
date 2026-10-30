@@ -91,7 +91,8 @@ function EventsContent() {
   }, []);
 
   const filteredEvents = useMemo(() => {
-    return events.filter((ev) => {
+    const list = Array.isArray(events) ? events : [];
+    return list.filter((ev) => {
       if (keyword.trim()) {
         const q = keyword.toLowerCase().trim();
         const matchesTitle = ev.title?.toLowerCase().includes(q);
@@ -130,14 +131,16 @@ function EventsContent() {
     if (!lookupEmail.trim()) return;
 
     const norm = lookupEmail.trim().toLowerCase();
-    const userMatches = bookings.filter((b) => b.user_email === norm);
+    const safeBookingsList = Array.isArray(bookings) ? bookings : [];
+    const userMatches = safeBookingsList.filter((b) => b.user_email === norm);
     setMatchedUserBookings(userMatches);
     setHasQueriedBookings(true);
   };
 
+  const safeCatList = Array.isArray(categories) ? categories : [];
   const dropdownCategoryOptions = [
     { value: '', label: 'All Categories' },
-    ...categories.map((c) => ({
+    ...safeCatList.map((c) => ({
       value: String(c.category_id),
       label: c.category_name,
       icon: CATEGORY_ICONS[c.category_name] || <Ticket size={16} />
