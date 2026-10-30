@@ -11,15 +11,16 @@ export async function GET(request) {
         { status: 400 }
       );
     }
-    const bookings = dbStore.getBookingsByUser(email);
+    const bookings = await dbStore.getBookingsByUser(email);
+    const bookingsArray = Array.isArray(bookings) ? bookings : [];
     return NextResponse.json({
       success: true,
-      count: bookings.length,
-      data: bookings
+      count: bookingsArray.length,
+      data: bookingsArray
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch user bookings' },
+      { success: false, error: error.message || 'Failed to fetch user bookings', data: [] },
       { status: 500 }
     );
   }

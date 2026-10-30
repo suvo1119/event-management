@@ -3,7 +3,7 @@ import { dbStore } from '@/lib/store';
 
 export async function GET() {
   try {
-    const stats = dbStore.getStats();
+    const stats = await dbStore.getStats();
     return NextResponse.json({
       success: true,
       data: stats

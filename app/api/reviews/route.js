@@ -3,15 +3,16 @@ import { dbStore } from '@/lib/store';
 
 export async function GET() {
   try {
-    const reviews = dbStore.getReviews();
+    const reviews = await dbStore.getReviews();
+    const reviewsArray = Array.isArray(reviews) ? reviews : [];
     return NextResponse.json({
       success: true,
-      count: reviews.length,
-      data: reviews
+      count: reviewsArray.length,
+      data: reviewsArray
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch reviews' },
+      { success: false, error: error.message || 'Failed to fetch reviews', data: [] },
       { status: 500 }
     );
   }
@@ -26,7 +27,7 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    const newRev = dbStore.createReview({
+    const newRev = await dbStore.createReview({
       event_id,
       user_email,
       rating,
@@ -58,7 +59,7 @@ export async function DELETE(request) {
         { status: 400 }
       );
     }
-    const deleted = dbStore.deleteReview(reviewId);
+    const deleted = await dbStore.deleteReview(reviewId);
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Review not found' },

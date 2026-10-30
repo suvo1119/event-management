@@ -3,7 +3,9 @@ import { dbStore } from '@/lib/store';
 
 export async function GET() {
   try {
-    const users = dbStore.getUsers().map(u => ({
+    const rawUsers = await dbStore.getUsers();
+    const usersArray = Array.isArray(rawUsers) ? rawUsers : [];
+    const users = usersArray.map((u) => ({
       user_id: u.user_id,
       full_name: u.full_name,
       email: u.email,
@@ -16,7 +18,7 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch users' },
+      { success: false, error: error.message || 'Failed to fetch users', data: [] },
       { status: 500 }
     );
   }
@@ -32,7 +34,7 @@ export async function DELETE(request) {
         { status: 400 }
       );
     }
-    const deleted = dbStore.deleteUser(userId);
+    const deleted = await dbStore.deleteUser(userId);
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
